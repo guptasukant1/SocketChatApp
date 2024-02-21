@@ -34,15 +34,44 @@ const io = new Server(expressServer, {
 // * It is a low-level protocol that allows us to send and receive messages
 // * It does not broadcast messages to all connected clients
 
+// $ For socket.on or io.on it means that we are working with a listener
+
 io.on("connection", (socket) => {
 	console.log("New connection");
 	console.log(`User: ${socket.id} connected`);
 
+	// ! Upon connection, we send a message to the said user
+	socket.emit("message", "Welcome to the Chat Room");
+
+	// ! We broadcast to all connected clients that the current user joined
+	socket.broadcast.emit(
+		"message",
+		`User: ${socket.id.substring(0, 5)} joined the chat`,
+	);
+
+	// ! We listen for the message event
 	socket.on("message", (data) => {
 		console.log(data);
 		io.emit("message", `${socket.id.substring(0, 5)}:  ${data}`);
 	});
+
+	// ! When user disconnects, the others are informed
+	socket.on("disconnect", () => {
+		socket.broadcast.emit(
+			"message",
+			`User ${socket.id.substring(0, 5)} has left the chat`,
+		);
+	});
+
+	// ! We listen for the activity event
+	socket.on("activity", (name) => {
+		socket.broadcast.emit("activity", name);
+	});
+
+	
 });
+
+
 
 // httpServer.listen(3000, ()=>{
 //     console.log('Listening on port 3000')
