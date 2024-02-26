@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
+const ADMIN = "Admin";
 // const httpServer = createServer()
 
 const app = express();
@@ -18,6 +19,14 @@ app.use(express.static(path.join(__dirname, "public")));
 const expressServer = app.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`);
 });
+
+// $ State for users
+const UsersState = {
+	users: [],
+	setUsers: function (newUsersArray) {
+		this.users = newUsersArray;
+	},
+};
 
 // const io = new Server(httpServer, {
 const io = new Server(expressServer, {
@@ -41,7 +50,61 @@ io.on("connection", (socket) => {
 	console.log(`User: ${socket.id} connected`);
 
 	// ! Upon connection, we send a message to the said user
-	socket.emit("message", "Welcome to the Chat Room");
+	socket.emit("message", buildMsg(ADMIN, "Welcome to the chat"));
+
+	// $ Manages the user joining a room, removing their entry from the previous room, sending relevant messages for the same
+	socket.on("enterRoom", ({ name, room }) => {
+		// * Remove the user from the previous room if they were in any
+		const prevRoom = getUser(socket.id)?.room;
+		if (prevRoom) {
+			socket.leave(prevRoom);
+			io.to(prevRoom).emit(
+				"message",
+				buildMsg(ADMIN, `${name} has left the room`),
+			);
+		}
+		const user = activateUser(socket.id, name, room);
+
+		if (prevRoom) {
+			io.to(prevRoom).emit("userList", { users: getUsersInRoom(prevRoom) });
+		}
+
+		// * Join the user to the new room
+		socket.join(user.room);
+
+		// * Send a message to the user that the user has joined a specific room | Send a message to the room that the user has joined
+		socket.emit("message", buildMsg(ADMIN, `You have joined ${user.room}`));
+		socket.broadcast
+			.to(user.room)
+			.emit("message", buildMsg(ADMIN, `${user.name} has joined the room`));
+
+		// * Send the list of users in the room to the user
+		io.to(user.room).emit("userList", { users: getUsersInRoom(user.room) });
+
+		// * Send the list of rooms to all users
+		io.emit("roomList", { rooms: getAllActiveRooms() });
+	});
+
+	// ! When user disconnects, the others are informed
+	socket.on("disconnect", () => {
+		const user = getUser(socket.id);
+		userLeaves(socket.id);
+
+		if (user) {
+			io.to(user.room).emit(
+				"message",
+				buildMsg(ADMIN, `${user.name} has left the room`),
+			);
+			io.to(user.room).emit("userList", { users: getUsersInRoom(user.room) });
+
+			io.emit('roomList', {rooms: getAllActiveRooms()})
+		}
+		// socket.broadcast.emit(
+		// 	"message",
+		// 	`User ${socket.id.substring(0, 5)} has left the chat`,
+		// );
+		console.log(`User ${socket.id.substring(0, 5)} has left the chat`);
+	});
 
 	// ! We broadcast to all connected clients that the current user joined
 	socket.broadcast.emit(
@@ -50,26 +113,69 @@ io.on("connection", (socket) => {
 	);
 
 	// ! We listen for the message event
-	socket.on("message", (data) => {
-		console.log(data);
-		io.emit("message", `${socket.id.substring(0, 5)}:  ${data}`);
+	socket.on("message", ({name, text}) => {
+		const room = getUser(socket.id)?.room
+		if(room){
+			io.to(room).emit('message', buildMsg(name, text))
+		}
+		console.log(name, text);
+		// console.log(text);
+		// io.emit("message", `${socket.id.substring(0, 5)}:  ${data}`);
 	});
-
-	// ! When user disconnects, the others are informed
-	socket.on("disconnect", () => {
-		socket.broadcast.emit(
-			"message",
-			`User ${socket.id.substring(0, 5)} has left the chat`,
-		);
-	});
+	
 
 	// ! We listen for the activity event
 	socket.on("activity", (name) => {
-		socket.broadcast.emit("activity", name);
+		const room = getUser(socket.id)?.room
+		if(room){
+			socket.broadcast.to(room).emit('activity', name)
+		}
+		// socket.broadcast.emit("activity", name);
 	});
 
-	
+	socket.on("connected", () => {
+		io.emit(`Users in the room: ${socket.id.substring(0, 5)}`);
+	});
 });
+
+// $ Build the message to be displayed
+function buildMsg(name, text) {
+	return {
+		name,
+		text,
+		time: new Intl.DateTimeFormat("Default", {
+			hour: "numeric",
+			minute: "numeric",
+			second: "numeric",
+		}).format(new Date()),
+	};
+}
+
+// * User Functions
+function activateUser(id, name, room) {
+	const user = { id, name, room };
+	UsersState.setUsers([
+		...UsersState.users.filter((user) => user.id !== id),
+		user,
+	]);
+	return user;
+}
+
+function userLeaves(id) {
+	UsersState.setUsers(UsersState.users.filter((user) => user.id !== id));
+}
+
+function getUser(id) {
+	return UsersState.users.find((user) => user.id === id);
+}
+
+function getUsersInRoom(room) {
+	return UsersState.users.filter((user) => user.room === room);
+}
+
+function getAllActiveRooms() {
+	return Array.from(new Set(UsersState.users.map((user) => user.room)));
+}
 
 
 
