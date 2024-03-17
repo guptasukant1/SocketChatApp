@@ -1,8 +1,8 @@
 // import { createServer } from 'http'
 import express from "express";
 import { Server } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,7 +122,7 @@ io.on("connection", (socket) => {
 		// console.log(text);
 		// io.emit("message", `${socket.id.substring(0, 5)}:  ${data}`);
 	});
-	
+
 
 	// ! We listen for the activity event
 	socket.on("activity", (name) => {
