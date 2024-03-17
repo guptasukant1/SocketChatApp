@@ -12,4 +12,4 @@ npm run dev
 
 .....
 
-To use it, go to: [https://websocketchatapp-wpj0.onrender.com](ChatAppLink)
+To use it, go to: (Chat App Link)[https://websocketchatapp-wpj0.onrender.com]
