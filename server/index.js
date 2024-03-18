@@ -142,7 +142,10 @@ io.on("connection", (socket) => {
 // $ Build the message to be displayed
 function buildMsg(name, text) {
 	const now = new Date();
-	const time = `${now.getUTCHours()}:${now.getUTCMinutes()}`;
+	const time = now.toLocaleTimeString([], {
+		hour: "numeric",
+		minute: "numeric",
+	});
 	return {
 		name,
 		text,
