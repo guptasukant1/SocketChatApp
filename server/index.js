@@ -3,6 +3,7 @@ import express from "express";
 import { Server } from "socket.io";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { time } from "node:console";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -143,7 +144,7 @@ function buildMsg(name, text) {
 	return {
 		name,
 		text,
-		time: new Intl.DateTimeFormat("Default", {
+		time: new Intl.DateTimeFormat(time, {
 			hour: "numeric",
 			minute: "numeric",
 			second: "numeric",
