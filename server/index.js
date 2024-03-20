@@ -143,6 +143,9 @@ io.on("connection", (socket) => {
 // $ Build the message to be displayed
 function buildMsg(name, text) {
 	const now = new Date();
+	now.setHours(now.getHours() + 5);
+	now.setMinutes(now.getMinutes() + 30);
+
 	const time = now.toLocaleTimeString([], {
 		hour: "numeric",
 		minute: "numeric",

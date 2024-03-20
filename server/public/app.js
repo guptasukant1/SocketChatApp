@@ -1,6 +1,6 @@
 // const socket = new WebSocket('ws://localhost:3000')
-// const socket = io("ws://localhost:3000");
-const socket = io("https://websocketchatapp-wpj0.onrender.com");
+const socket = io("ws://localhost:3000");
+// const socket = io("https://websocketchatapp-wpj0.onrender.com");
 
 const msgInput = document.querySelector("#message");
 const nameInput = document.querySelector("#name");
