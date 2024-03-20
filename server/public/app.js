@@ -1,6 +1,6 @@
 // const socket = new WebSocket('ws://localhost:3000')
-// const socket = io("ws://localhost:3000");
-const socket = io("https://websocketchatapp-wpj0.onrender.com");
+const socket = io("ws://localhost:3000");
+// const socket = io("https://websocketchatapp-wpj0.onrender.com");
 
 const msgInput = document.querySelector("#message");
 const nameInput = document.querySelector("#name");
@@ -33,11 +33,9 @@ function enterRoom(e) {
 }
 
 //* Listen for messages
-document
-	.querySelector(".form-msg")
-	.addEventListener("click", sendMessage);
+document.querySelector(".form-msg").addEventListener("submit", sendMessage);
 
-document.querySelector(".form-join").addEventListener("click", enterRoom);
+document.querySelector(".form-join").addEventListener("submit", enterRoom);
 
 msgInput.addEventListener("keypress", () => {
 	socket.emit("activity", nameInput.value);
@@ -66,7 +64,7 @@ socket.on("message", (data) => {
 	}
 	// * For the Admin
 	else {
-		li.innerHTML = `<div class="post__text">${text}</div>`;
+		li.innerHTML = `<div class="post__text" style="text-align: center">${text}</div>`;
 	}
 	document.querySelector(".chat-display").appendChild(li);
 
