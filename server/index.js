@@ -100,10 +100,6 @@ io.on("connection", (socket) => {
 
 			io.emit('roomList', {rooms: getAllActiveRooms()})
 		}
-		// socket.broadcast.emit(
-		// 	"message",
-		// 	`User ${socket.id.substring(0, 5)} has left the chat`,
-		// );
 		console.log(`User ${socket.id.substring(0, 5)} has left the chat`);
 	});
 
@@ -119,20 +115,18 @@ io.on("connection", (socket) => {
 		if(room){
 			io.to(room).emit('message', buildMsg(name, text))
 		}
+		else {
+			console.error(`Message not sent. User ${name} is not in a room.`); // Added error logging
+		}
 		console.log(name, text);
-		// console.log(text);
-		// io.emit("message", `${socket.id.substring(0, 5)}:  ${data}`);
 	});
-
 
 	// ! We listen for the activity event
 	socket.on("activity", (name) => {
 		const room = getUser(socket.id)?.room
 		if(room){
-			// socket.broadcast.to(room).emit('activity', name)
 			io.to(room).emit("activity", name);
 		}
-		// socket.broadcast.emit("activity", name);
 	});
 
 	socket.on("connected", () => {
@@ -182,10 +176,3 @@ function getUsersInRoom(room) {
 function getAllActiveRooms() {
 	return Array.from(new Set(UsersState.users.map((user) => user.room)));
 }
-
-
-
-// httpServer.listen(3000, ()=>{
-//     console.log('Listening on port 3000')
-// })
-
