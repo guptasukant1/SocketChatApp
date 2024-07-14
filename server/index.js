@@ -1,4 +1,3 @@
-// import { createServer } from 'http'
 import express from "express";
 import { Server } from "socket.io";
 import { fileURLToPath } from "node:url";
@@ -10,7 +9,6 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 const ADMIN = "Admin";
-// const httpServer = createServer()
 
 const app = express();
 
@@ -112,7 +110,7 @@ io.on("connection", (socket) => {
 	// ! We listen for the message event
 	socket.on("message", ({name, text}) => {
 		const room = getUser(socket.id)?.room
-		if(room){
+		if(room && getUser(socket.id) !== undefined){
 			io.to(room).emit('message', buildMsg(name, text))
 		}
 		else {
