@@ -13,7 +13,7 @@ The web app consists of backend on Node.js, Socket.IO, websocket (previously) an
 
 ```
 cd server
-npm instal
+npm install
 npm run dev
 ```
 
